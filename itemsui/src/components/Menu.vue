@@ -102,14 +102,11 @@
                 </div>
                 </div>
             </div>
-            <!-- <button class="modal-close is-large" aria-label="close" @click="toggleModal()">x</button> -->
     </div>
     </div>
 </template>
 
 <script>
-import axios from 'axios';
-
 export default {
     name: 'Title',
     data() {
@@ -123,33 +120,25 @@ export default {
             fileCount: 0,
         };
     },
+    computed: {
+        items() {
+            return this.$store.getters.getAllItems;
+        }
+    },
     methods: {
         toggleModal() { 
             this.modalActived = !this.modalActived;
         },
-        async createItem(event) {
-            event.preventDefault();     
-            console.log({title: this.title, photo: this.photo, description: this.description});
-
-            const form = new FormData();
-            form.append('title', this.title);
-            form.append('description', this.description);
-            form.append('photo', this.photo);
-
-
-            try {
-                const res = await axios({
-                    url: 'http://127.0.0.1:8000/api/items',
-                    method: 'POST',
-                    data: form,
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                })
-                console.log(res)
-            } catch(err) {
-                console.log(err)
-            }
+        createItem(event) {
+            event.preventDefault();
+                
+            this.$store.dispatch(
+            "setCurrentItem", {
+                title: this.title, 
+                photo: this.photo, 
+                description: this.description
+            })
+            this.toggleModal();
         },
         filesChanges(name, file) {
             this.photo = file[0];

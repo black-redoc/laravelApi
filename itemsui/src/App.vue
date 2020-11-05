@@ -1,18 +1,21 @@
 <template>
   <div id="app">
     <Menu />
-    <ShowList msg="Welcome to Your Vue.js App"/>
+    <ShowList/>
   </div>
 </template>
 
 <script>
-import ShowList from './components/ShowList.vue'
-import Menu from './components/Menu.vue'
+import ShowList from './components/ShowList.vue';
+import Menu from './components/Menu.vue';
 
 export default {
   name: 'App',
   components: {
     ShowList, Menu
+  },
+  mounted() {
+    this.$store.dispatch('setAllItems')
   }
 }
 </script>

@@ -6,6 +6,7 @@ use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Session;
+use Validator;
 
 class ItemController extends Controller
 {
@@ -62,7 +63,7 @@ class ItemController extends Controller
                 ]);
                 Session::flash('success', "Success!");
                 return response()->json([
-                    "message" => $item->title . " created"
+                    "item" => $item
                 ], 201);
             } else {
                 return  response()->json([
@@ -83,7 +84,7 @@ class ItemController extends Controller
             Session::flash('success', "Success!");
 
             return response()->json([
-                "message" => $item->title ." created"
+                "item" => $item
             ], 201);
         }
     }
@@ -96,32 +97,31 @@ class ItemController extends Controller
      * @param  \App\Models\Item  $item
      * @return \Illuminate\Http\Response
      */
-    public function update(int $id, Request $request, Item $item)
+    public function update(Request $request, int $id)
     {
         if(Item::where('id', $id)->exists()) {
             $item = Item::find($id);
-
-
+            /*
+             * $request is no returning the json data?
+             * fix it!
+             */
             if ($request->hasFile('photo')) {
                 if ($request->file('photo')->isValid()) {
-                    $validated = $request->validate([
-                        'title' => 'string|max:40',
-                        'description' => 'string|max:100',
-                        'photo' => 'mimes:jpeg,png|max:1014',
-                    ]);
+                    $validated = $request->validated();
     
                     $extension = $request->photo->extension();
                     $request->photo->storeAs('/public', $validated['title'].".".$extension);
                     $url = Storage::url($validated['title'].".".$extension);
-                    $item->title = $validated['title'];
-                    $item->description = $validated['description'];
-                    $item->photo = $url;
 
-                    $item->save();
+                    $item = Item::where('id', $id)->update([
+                        'title' => $validated['title'],
+                        'description' => $validated['description'],
+                        'photo' => $url
+                    ]);
 
                     Session::flash('success', "Success!");
                     return response()->json([
-                        "message" => $item->title . " updated"
+                        "item" => $item
                     ], 201);
                 } else {
                     return  response()->json([
@@ -129,19 +129,27 @@ class ItemController extends Controller
                     ], 500);
                 }
             } else {
-                $validated = $request->validate([
+                $validator = Validator::make($request->all(), [
                     'title' => 'string|max:40',
                     'description' => 'string|max:100',
                 ]);
 
-                $item->title = $validated['title'];
-                $item->description = $validated['description'];
-                $item->save();
-                
+                if($validator->fails()) abort(400);
+
+                $valodated = $request->validate([
+                    'title' => 'string|max:40',
+                    'description' => 'string|max:100',
+                ]);
+
+                $item = Item::where('id', $id)->update([
+                    'title' => $request->input('title'),
+                    'description' => $request->input('description'),
+                ]);
+
                 Session::flash('success', "Success!");
                 
                 return response()->json([
-                    "message" => $item->title . " updated"
+                    "item" => $item
                 ], 201);
             }
         } else {
