@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Session;
 
 class ItemController extends Controller
 {
@@ -40,18 +42,18 @@ class ItemController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
         if ($request->hasFile('photo')) {
             if ($request->file('photo')->isValid()) {
                 $validated = $request->validate([
                     'title' => 'string|max:40',
                     'description' => 'string|max:100',
-                    'image' => 'mimes:jpeg,png|max:1014',
+                    'photo' => 'mimes:jpeg,png|max:1014',
                 ]);
 
                 $extension = $request->photo->extension();
-                $request->image->storeAs('/public', $validated['title'].".".$extension);
+                $request->photo->storeAs('/public', $validated['title'].".".$extension);
                 $url = Storage::url($validated['title'].".".$extension);
                 $item = Item::create([
                     'title' => $validated['title'],
@@ -76,7 +78,6 @@ class ItemController extends Controller
             $item = Item::create([
                 'title' => $validated['title'],
                 'description' => $validated['description'],
-                'photo' => $url,
             ]);
 
             Session::flash('success', "Success!");
@@ -106,11 +107,11 @@ class ItemController extends Controller
                     $validated = $request->validate([
                         'title' => 'string|max:40',
                         'description' => 'string|max:100',
-                        'image' => 'mimes:jpeg,png|max:1014',
+                        'photo' => 'mimes:jpeg,png|max:1014',
                     ]);
     
                     $extension = $request->photo->extension();
-                    $request->image->storeAs('/public', $validated['title'].".".$extension);
+                    $request->photo->storeAs('/public', $validated['title'].".".$extension);
                     $url = Storage::url($validated['title'].".".$extension);
                     $item->title = $validated['title'];
                     $item->description = $validated['description'];

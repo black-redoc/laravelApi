@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,9 +25,17 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-ROute::get('/static/{filename}', function(string $filename) {
-    return response()->redirectTo(config('app.asset_url') . $filename, 302, [
-		'Content-Type' => 'text/plain',
-		'Cache-Control' => 'public, max-age=3600',
-	]);
+Route::get('/storage/{filename}', function($filename) {
+    $file = Storage::get('public/' . $filename);
+
+    if (!$file) {
+        abort(404);
+    }
+
+    $type = explode('.', $filename)[1];
+
+    $response = Response::make($file, 200);
+    $response->header("Content-Type", $type);
+
+    return $response;
 });
